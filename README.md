@@ -1,2 +1,2 @@
-# finicity-python
+# Finicity Python
 Python client for Finicity API

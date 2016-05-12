@@ -1,0 +1,3 @@
+
+class Finicity(object):
+    pass
