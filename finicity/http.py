@@ -1,11 +1,11 @@
 import requests
-from xmltodict import parse, unparse
+from xmltodict import unparse
 
-
-class Requestor(object):
-    def __init__(self, base_url, app_key):
+class Requester(object):
+    def __init__(self, base_url, app_key, debug=False):
         self.base_url = base_url
         self.app_key = app_key
+        self.debug = debug
 
     def request(self, method, endpoint, body=None, headers=None):
         method = method.upper()
@@ -16,6 +16,9 @@ class Requestor(object):
             headers = dict()
         headers.update({"Content-Type": "application/xml",
                         "Finicity-App-Key": str(self.app_key)})
+
+        if self.debug:
+            print("Sending request to {}".format(url))
 
         if method == "POST":
             body = unparse(body, full_document=False)

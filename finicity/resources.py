@@ -1,4 +1,4 @@
-
+from .utils import enum
 
 class BaseObject(object):
     required_fields = []
@@ -27,12 +27,13 @@ class BaseObject(object):
 class BaseResource(BaseObject):
     def get_required_fields(self):
         fields = super(BaseResource, self).get_required_fields()
-        return fields.extend(self.required_fields)
+        fields.extend(self.required_fields)
+        return fields
 
     def get_optional_fields(self):
         fields = super(BaseResource, self).get_required_fields()
-        return fields.extend(self.optional_fields)
-
+        fields.extend(self.optional_fields)
+        return fields
 
 class Account(BaseResource):
     required_fields = ["id", "number", "name", "balance", "type", "status",
@@ -40,6 +41,29 @@ class Account(BaseResource):
     optional_fields = ["aggregationStatusCode", "aggregationSuccessDate",
                        "aggregationAttemptDate", "balanceDate", "lastUpdatedDate",
                        "detail", ]
+
+    _account_types = ['unknown', 'checking', 'savings', 'cd', 'moneyMarket',
+                      'creditCard', 'lineOfCredit', 'investment', 'mortgage', 'loan']
+    AccountTypes = enum(**{a.upper(): a for a in _account_types})
+
+    @classmethod
+    def deserialize(cls, account):
+        if 'detail' in account:
+            AT = cls.AccountTypes
+            account_type = account.get('type')
+            if account_type == AT.INVESTMENT:
+                account_class = InvestmentAccount
+            elif account_type in [AT.CREDIT_CARD, AT.LINEOFCREDIT]:
+                account_class = CreditCardAccount
+            elif account_type in [AT.MORTGAGE, AT.LOAD]:
+                account_class = LoanAccount
+            else:
+                account_class = ChequingAccount
+            account['detail'] = account_class(**account['detail'])
+        # else:
+        #     account['detail'] = None
+        return Account(**account)
+
 
 class ChequingAccount(BaseResource):
     required_fields = ["availableBalanceAmount", "interestYtdAmount",
@@ -58,7 +82,6 @@ class LoanAccount(BaseResource):
 
 class InvestmentAccount(BaseResource):
     required_fields = ["availableCashBalance", ]
-
 
 
 class Institution(BaseResource):
@@ -84,10 +107,28 @@ class MFAChallenge(BaseResource):
 class BaseMFA(BaseResource):
     required_fields = ["text", "answer", ]
 
+    @classmethod
+    def deserialize(cls, question):
+        if 'image' in question:
+            return CaptchaMFA(text=question.get("text"),
+                                   image=question.get("image"),
+                                   answer="")
+        elif 'choice' in question:
+            choices = [c["@value"] for c in question.get("choice")]
+            return MultipleOptionsMFA(text=question.get("text"),
+                                           choices=choices,
+                                           answer="")
+        elif 'imageChoice' in question:
+            choices = [(c["@value"], c["#text"]) for c in question.get("imageChoice")]
+            return MultipleImagesMFA(text=question.get("text"),
+                                          imageChoices=choices,
+                                          answer="")
+        else:
+            return TextMFA(text=question.get("text"), answer="")
+
 
 class TextMFA(BaseMFA):
     pass
-
 
 class CaptchaMFA(BaseMFA):
     required_fields = ["image", ]
