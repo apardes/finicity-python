@@ -3,9 +3,9 @@ from . import Finicity
 
 class FinicityTest(unittest.TestCase):
     def setUp(self):
-        self.finicity = Finicity("2445581458544",
-                                 "yEWtsRMzttEe3p8aD2xO",
-                                 "ef7fc92a248c10fe0518a1da2cd4d84d")
+        self.finicity = Finicity("",
+                                 "",
+                                 "")
 
     def test_authenticate(self):
         self.finicity.authenticate()
