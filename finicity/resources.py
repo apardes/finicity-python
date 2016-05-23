@@ -1,39 +1,63 @@
 from .utils import enum
 
 class BaseObject(object):
-    required_fields = []
-    optional_fields = []
+    # required_fields = []
+    # optional_fields = []
 
     def __init__(self, **kwargs):
-        missing_fields = []
-        for field in self.get_required_fields():
-            if field not in kwargs:
-                missing_fields.append(field)
-
-        if len(missing_fields) > 0:
-            raise Exception("Missing required fields {}".format(', '.join(missing_fields)))
+        self.__required_fields = []
+        self.__optional_fields = []
 
         for key, value in kwargs.items():
-            if key in self.get_optional_fields():
+            if key in self.optional_fields \
+                    or key in self.required_fields:
                 self.__dict__.update({key: value})
 
-    def get_required_fields(self):
-        return self.required_fields
+    @property
+    def required_fields(self):
+        return self.__required_fields
 
-    def get_optional_fields(self):
-        return self.optional_fields
+    @required_fields.setter
+    def required_fields(self, value):
+        self.__required_fields = value
+
+    @property
+    def optional_fields(self):
+        return self.__optional_fields
+
+    @optional_fields.setter
+    def optional_fields(self, value):
+        self.__optional_fields = value
 
 
 class BaseResource(BaseObject):
-    def get_required_fields(self):
-        fields = super(BaseResource, self).get_required_fields()
-        fields.extend(self.required_fields)
-        return fields
+    def __init__(self, *args, **kwargs):
+        missing_fields = []
+        for field in self.required_fields:
+            if field not in kwargs:
+                missing_fields.append(field)
+        if len(missing_fields) > 0:
+            raise Exception("Missing required fields {}".format(', '.join(missing_fields)))
+        super(BaseResource, self).__init__(**kwargs)
 
-    def get_optional_fields(self):
-        fields = super(BaseResource, self).get_required_fields()
-        fields.extend(self.optional_fields)
-        return fields
+    @property
+    def required_fields(self):
+        value = BaseObject.required_fields.fget()
+        return value
+
+    @required_fields.setter
+    def required_fields(self, value):
+        BaseObject.required_fields.fset(self, value)
+
+    @property
+    def optional_fields(self):
+        value = BaseObject.optional_fields.fget()
+        return value
+
+    @optional_fields.setter
+    def optional_fields(self, value):
+        BaseObject.optional_fields.fset(self, value)
+
 
 class Account(BaseResource):
     required_fields = ["id", "number", "name", "balance", "type", "status",
@@ -91,7 +115,8 @@ class Institution(BaseResource):
 
 class LoginField(BaseResource):
     required_fields = ["id", "name", "value", "description", "displayOrder",
-                       "mask", "valueLengthMin", "valueLengthMax", "instructions", ]
+                       "mask", "instructions", ]
+    optional_fields = ["valueLengthMin", "valueLengthMax", ]
 
 
 class Customer(BaseResource):

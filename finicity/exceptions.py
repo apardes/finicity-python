@@ -1,0 +1,3 @@
+class ObjectDoesNotExist(Exception):
+    pass
+
