@@ -1,9 +1,7 @@
 from .utils import enum
 
-class BaseObject(object):
-    # required_fields = []
-    # optional_fields = []
 
+class BaseObject(object):
     def __init__(self, **kwargs):
         self.__required_fields = []
         self.__optional_fields = []
@@ -42,8 +40,11 @@ class BaseResource(BaseObject):
 
     @property
     def required_fields(self):
-        value = BaseObject.required_fields.fget()
-        return value
+        # TODO: Find a better way to handle when required fields are not specified
+        try:
+            return BaseObject.required_fields.fget()
+        except TypeError:
+            return []
 
     @required_fields.setter
     def required_fields(self, value):
@@ -51,8 +52,11 @@ class BaseResource(BaseObject):
 
     @property
     def optional_fields(self):
-        value = BaseObject.optional_fields.fget()
-        return value
+        #TODO: Find a better way to handle when optional fields are not specified
+        try:
+            return BaseObject.optional_fields.fget()
+        except TypeError:
+            return []
 
     @optional_fields.setter
     def optional_fields(self, value):
@@ -60,9 +64,9 @@ class BaseResource(BaseObject):
 
 
 class Account(BaseResource):
-    required_fields = ["id", "number", "name", "balance", "type", "status",
-                       "customerId", "institutionId", "createdDate", ]
-    optional_fields = ["aggregationStatusCode", "aggregationSuccessDate",
+    required_fields = ["id", "number", "name", "balance", "type", "status",]
+    optional_fields = ["customerId", "institutionId", "createdDate",
+                       "aggregationStatusCode", "aggregationSuccessDate",
                        "aggregationAttemptDate", "balanceDate", "lastUpdatedDate",
                        "detail", ]
 
@@ -72,40 +76,41 @@ class Account(BaseResource):
 
     @classmethod
     def deserialize(cls, account):
-        if 'detail' in account:
+        if account.get('detail', None) is not None:
             AT = cls.AccountTypes
             account_type = account.get('type')
             if account_type == AT.INVESTMENT:
                 account_class = InvestmentAccount
-            elif account_type in [AT.CREDIT_CARD, AT.LINEOFCREDIT]:
+            elif account_type in [AT.CREDITCARD, AT.LINEOFCREDIT]:
                 account_class = CreditCardAccount
-            elif account_type in [AT.MORTGAGE, AT.LOAD]:
+            elif account_type in [AT.MORTGAGE, AT.LOAN]:
                 account_class = LoanAccount
             else:
                 account_class = ChequingAccount
+            print account_class, account
             account['detail'] = account_class(**account['detail'])
-        # else:
-        #     account['detail'] = None
         return Account(**account)
 
 
 class ChequingAccount(BaseResource):
-    required_fields = ["availableBalanceAmount", "interestYtdAmount",
+    optional_fields = ["availableBalanceAmount", "interestYtdAmount",
                        "periodInterestRate", "periodInterestAmount", ]
 
 
 class CreditCardAccount(BaseResource):
-    required_fields = ["creditMaxAmount", "creditAvailableAmount", "paymentMinAmount",
+    optional_fields = ["creditMaxAmount", "creditAvailableAmount", "paymentMinAmount",
                        "paymentDueDate", "lastPaymentAmount", "lastPaymentDate",
                        "interestRate", "cashAdvanceInterestRate", ]
 
+
 class LoanAccount(BaseResource):
-    required_fields = ["interestRate", "nextPaymentDate", "nextPayment", "escrowBalance",
+    optional_fields = ["interestRate", "nextPaymentDate", "nextPayment", "escrowBalance",
                        "payoffAmount", "principalBalance", "ytdInterestPaid",
                        "ytdPrincipalPaid", "lastPaymentAmount", "lastPaymentReceiveDate", ]
 
+
 class InvestmentAccount(BaseResource):
-    required_fields = ["availableCashBalance", ]
+    optional_fields = ["availableCashBalance", ]
 
 
 class Institution(BaseResource):
@@ -120,9 +125,8 @@ class LoginField(BaseResource):
 
 
 class Customer(BaseResource):
-    required_fields = ["username", "firstName", "lastName",]
+    required_fields = ["username", "firstName", "lastName", ]
     optional_fields = ["id", "type", "createdDate", ]
-
 
 
 class MFAChallenge(BaseResource):
@@ -136,18 +140,18 @@ class BaseMFA(BaseResource):
     def deserialize(cls, question):
         if 'image' in question:
             return CaptchaMFA(text=question.get("text"),
-                                   image=question.get("image"),
-                                   answer="")
+                              image=question.get("image"),
+                              answer="")
         elif 'choice' in question:
             choices = [c["@value"] for c in question.get("choice")]
             return MultipleOptionsMFA(text=question.get("text"),
-                                           choices=choices,
-                                           answer="")
+                                      choices=choices,
+                                      answer="")
         elif 'imageChoice' in question:
             choices = [(c["@value"], c["#text"]) for c in question.get("imageChoice")]
             return MultipleImagesMFA(text=question.get("text"),
-                                          imageChoices=choices,
-                                          answer="")
+                                     imageChoices=choices,
+                                     answer="")
         else:
             return TextMFA(text=question.get("text"), answer="")
 
@@ -167,3 +171,21 @@ class MultipleImagesMFA(BaseMFA):
     required_fields = ["imageChoices", ]
 
 
+class Transaction(BaseResource):
+    _txn_types = ['atm', 'cash', 'check', 'credit', 'debit', 'deposit',
+                  'directDebit', 'directDeposit', 'dividend', 'fee',
+                  'interest', 'other', 'payment', 'pointOfSale', 'repeatPayment',
+                  'serviceCharge', 'transfer']
+
+    TransactionTypes = enum(**{t.upper(): t for t in _txn_types})
+
+    _txn_statuses = ['active', 'pending', 'shadow']
+
+    TransactionStatuses = enum(**{s.upper(): s for s in _txn_statuses})
+
+    required_fields = ["id", "accountId", "amount", "bonusAmount", "checkNum",
+                       "createdDate", "customerId", "description", "escrowAmount",
+                       "feeAmount", "institutionTransactionId", "interestAmount",
+                       "memo", "postedDate", "principalAmount", "status",
+                       "subaccount", "transactionDate", "type", "unitQuantity",
+                       "unitValue"]

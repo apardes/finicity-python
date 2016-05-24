@@ -16,7 +16,7 @@ class Finicity(object):
         self.partner_secret = partner_secret
         self.app_key = app_key
         self.app_token = None
-        self.http = Requester("https://api.finicity.com/aggregation/", app_key)
+        self.http = Requester("https://api.finicity.com/aggregation/", app_key, True)
 
     def handle_mfa_response(self, response):
         mfa_response_data = parse(response.content)
@@ -85,7 +85,6 @@ class Finicity(object):
                                      kwargs['endpoint_path'].format(institution_id=institution_id),
                                      headers={'Finicity-App-Token': self.app_token})
         fields = parse(response.content).get('loginForm', [])
-        print fields['loginField']
         return [LoginField(**field) for field in fields['loginField']]
 
     @endpoint("POST", "v1/customers/testing")
@@ -155,7 +154,6 @@ class Finicity(object):
                                      headers={'Finicity-App-Token': self.app_token})
         if response.status_code == 203:
             return self.handle_mfa_response(response)
-
         accounts = parse(response.content).get('accounts', [])
         return [Account.deserialize(account) for account in accounts['account']]
 
@@ -165,7 +163,30 @@ class Finicity(object):
                                      kwargs['endpoint_path'].format(customer_id=customer_id,
                                                                     account_id=account_id),
                                      headers={'Finicity-App-Token': self.app_token})
+        # TODO: Return proper account instance
         return response
+
+    @endpoint("PUT", "v1/customers/{customer_id}/institutions/{institution_id}/accounts")
+    def activate_accounts(self, customer_id, institution_id, body, *args, **kwargs):
+        response = self.http.request(kwargs['method'],
+                                     kwargs['endpoint_path'].format(customer_id=customer_id,
+                                                                    institution_id=institution_id),
+                                     body=body,
+                                     headers={'Finicity-App-Token': self.app_token})
+        accounts = parse(response.content).get('accounts', [])
+        return [Account.deserialize(account) for account in accounts['account']]
+
+    @endpoint("POST", "v1/customers/{customer_id}/accounts/{account_id}")
+    def refresh_account(self, customer_id, account_id, body, *args, **kwargs):
+        response = self.http.request(kwargs['method'],
+                                     kwargs['endpoint_path'].format(customer_id=customer_id,
+                                                                    account_id=account_id),
+                                     body=body,
+                                     headers={'Finicity-App-Token': self.app_token})
+        if response.status_code == 203:
+            return self.handle_mfa_response(response)
+        accounts = parse(response.content).get('accounts', [])
+        return [Account.deserialize(account) for account in accounts['account']]
 
     @endpoint("POST", "v1/customers/{customer_id}/institutions/{institution_id}/accounts/addall/mfa")
     def mfa_response(self, customer_id, institution_id, mfa_session, body, *args, **kwargs):
@@ -180,3 +201,12 @@ class Finicity(object):
 
         accounts = parse(response.content).get('accounts', [])
         return [Account.deserialize(account) for account in accounts['account']]
+
+    @endpoint("GET", "v2/customers/{customer_id}/accounts/{account_id}/transactions")
+    def get_transactions(self, customer_id, account_id, body, *args, **kwargs):
+        response = self.http.request(kwargs['method'],
+                                     kwargs['endpoint_path'].format(customer_id=customer_id,
+                                                                    account_id=account_id),
+                                     body=body,
+                                     headers={'Finicity-App-Token': self.app_token})
+        return response
