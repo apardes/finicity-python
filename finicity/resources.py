@@ -62,6 +62,9 @@ class BaseResource(BaseObject):
     def optional_fields(self, value):
         BaseObject.optional_fields.fset(self, value)
 
+    def __repr__(self):
+        return "<{}: {}>".format(self.__class__.__name__, self.id)
+
 
 class Account(BaseResource):
     required_fields = ["id", "number", "name", "balance", "type", "status",]
@@ -87,7 +90,6 @@ class Account(BaseResource):
                 account_class = LoanAccount
             else:
                 account_class = ChequingAccount
-            print account_class, account
             account['detail'] = account_class(**account['detail'])
         return Account(**account)
 
@@ -183,9 +185,10 @@ class Transaction(BaseResource):
 
     TransactionStatuses = enum(**{s.upper(): s for s in _txn_statuses})
 
-    required_fields = ["id", "accountId", "amount", "bonusAmount", "checkNum",
-                       "createdDate", "customerId", "description", "escrowAmount",
-                       "feeAmount", "institutionTransactionId", "interestAmount",
-                       "memo", "postedDate", "principalAmount", "status",
-                       "subaccount", "transactionDate", "type", "unitQuantity",
-                       "unitValue"]
+    required_fields = ["id", "accountId", "amount", "createdDate", "customerId",
+                       "description", "institutionTransactionId", "postedDate",
+                       "status", "transactionDate"]
+
+    optional_fields = ["bonusAmount", "checkNum", "escrowAmount", "feeAmount",
+                       "interestAmount", "memo", "principalAmount", "subaccount", "type",
+                       "unitQuantity", "unitValue"]

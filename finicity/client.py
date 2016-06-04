@@ -4,7 +4,7 @@ from finicity.exceptions import ObjectDoesNotExist
 from .utils import endpoint
 from .compat import cache
 from .http import Requester
-from .resources import Institution, LoginField, Customer, Account, BaseMFA, MFAChallenge
+from .resources import Institution, LoginField, Customer, Account, BaseMFA, MFAChallenge, Transaction
 
 
 class Finicity(object):
@@ -16,7 +16,7 @@ class Finicity(object):
         self.partner_secret = partner_secret
         self.app_key = app_key
         self.app_token = None
-        self.http = Requester("https://api.finicity.com/aggregation/", app_key, True)
+        self.http = Requester("https://api.finicity.com/aggregation/", app_key)
 
     def handle_mfa_response(self, response):
         mfa_response_data = parse(response.content)
@@ -107,9 +107,9 @@ class Finicity(object):
                                      body=querystring,
                                      headers={'Finicity-App-Token': self.app_token})
         customers = parse(response.content)
-        if int(customers['customers']['@found']) == 1:
-            customers = customers['customers']['customer']
-        elif int(customers['customers']['@found']) > 1:
+        if int(customers['customers']['@displaying']) == 1:
+            customers = [customers['customers']['customer']]
+        elif int(customers['customers']['@displaying']) > 1:
             customers = [cus for cus in customers['customers']['customer']]
         else:
             customers = []
@@ -173,6 +173,8 @@ class Finicity(object):
                                                                     institution_id=institution_id),
                                      body=body,
                                      headers={'Finicity-App-Token': self.app_token})
+        if response.status_code == 203:
+            return self.handle_mfa_response(response)
         accounts = parse(response.content).get('accounts', [])
         return [Account.deserialize(account) for account in accounts['account']]
 
@@ -209,4 +211,6 @@ class Finicity(object):
                                                                     account_id=account_id),
                                      body=body,
                                      headers={'Finicity-App-Token': self.app_token})
-        return response
+
+        transactions = parse(response.content).get('transactions', [])
+        return [Transaction(**t) for t in transactions['transaction']]
