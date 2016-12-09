@@ -71,7 +71,7 @@ class Account(BaseResource):
     optional_fields = ["customerId", "institutionId", "createdDate",
                        "aggregationStatusCode", "aggregationSuccessDate",
                        "aggregationAttemptDate", "balanceDate", "lastUpdatedDate",
-                       "detail", ]
+                       "detail", 'institutionLoginId']
 
     _account_types = ['unknown', 'checking', 'savings', 'cd', 'moneyMarket',
                       'creditCard', 'lineOfCredit', 'investment', 'mortgage', 'loan']
@@ -89,20 +89,61 @@ class Account(BaseResource):
             elif account_type in [AT.MORTGAGE, AT.LOAN]:
                 account_class = LoanAccount
             else:
-                account_class = ChequingAccount
+                account_class = CheckingAccount
             account['detail'] = account_class(**account['detail'])
         return Account(**account)
 
+    def to_json(self):
+        return {
+            'id' : self.id,
+            'number' : self.number,
+            'name' : self.name,
+            'balance' : self.balance,
+            'type' : self.type,
+            'status' : self.status,
+        }
 
-class ChequingAccount(BaseResource):
+    def to_jsonl(self):
+        return {
+            'id' : self.id,
+            'number' : self.number,
+            'name' : self.name,
+            'type' : self.type,
+            'status' : self.status
+        }
+
+
+
+class CheckingAccount(BaseResource):
     optional_fields = ["availableBalanceAmount", "interestYtdAmount",
                        "periodInterestRate", "periodInterestAmount", ]
+
+    def to_json(self):
+        return {
+            'id' : self.id,
+            'number' : self.number,
+            'name' : self.name,
+            'balance' : self.balance,
+            'type' : self.type,
+            'status' : self.status,
+        }
 
 
 class CreditCardAccount(BaseResource):
     optional_fields = ["creditMaxAmount", "creditAvailableAmount", "paymentMinAmount",
                        "paymentDueDate", "lastPaymentAmount", "lastPaymentDate",
                        "interestRate", "cashAdvanceInterestRate", ]
+
+    def to_json(self):
+        return {
+            'id' : self.id,
+            'number' : self.number,
+            'name' : self.name,
+            'balance' : self.balance,
+            'type' : self.type,
+            'status' : self.status,
+        }
+
 
 
 class LoanAccount(BaseResource):
@@ -111,13 +152,45 @@ class LoanAccount(BaseResource):
                        "ytdPrincipalPaid", "lastPaymentAmount", "lastPaymentReceiveDate", ]
 
 
+    def to_json(self):
+        return {
+            'id' : self.id,
+            'number' : self.number,
+            'name' : self.name,
+            'balance' : self.balance,
+            'type' : self.type,
+            'status' : self.status,
+        }
+
+
 class InvestmentAccount(BaseResource):
     optional_fields = ["availableCashBalance", ]
+
+
+    def to_json(self):
+        return {
+            'id' : self.id,
+            'number' : self.number,
+            'name' : self.name,
+            'balance' : self.balance,
+            'type' : self.type,
+            'status' : self.status,
+        }
 
 
 class Institution(BaseResource):
     required_fields = ["id", "name", "accountTypeDescription", "urlHomeApp",
                        "urlLogonApp", "urlProductApp", ]
+
+    def to_json(self):
+        return {
+            'id' : self.id,
+            'name' : self.name,
+            'accountTypeDescription' : self.accountTypeDescription,
+            'urlHomeApp' : self.urlHomeApp,
+            'urlLogonApp' : self.urlLogonApp,
+            'urlProductApp' : self.urlProductApp
+        }
 
 
 class LoginField(BaseResource):
@@ -125,10 +198,29 @@ class LoginField(BaseResource):
                        "mask", "instructions", ]
     optional_fields = ["valueLengthMin", "valueLengthMax", ]
 
+    def to_json(self):
+        return {
+            'id' : self.id,
+            'name' : self.name,
+            'value' : self.value,
+            'description' : self.description,
+            'displayOrder' : self.displayOrder,
+            'mask' : self.mask,
+            'instructions' : self.instructions
+        }
+
 
 class Customer(BaseResource):
     required_fields = ["username", "firstName", "lastName", ]
     optional_fields = ["id", "type", "createdDate", ]
+
+    def to_json(self):
+        return {
+            'username' : self.username,
+            'firstName' : self.firstName,
+            'lastName' : self.lastName,
+            'id' : self.id
+        }
 
 
 class MFAChallenge(BaseResource):

@@ -1,6 +1,6 @@
 from xmltodict import parse, unparse
 
-from finicity.exceptions import ObjectDoesNotExist
+from finicity.exceptions import ObjectDoesNotExist, MissingParameter
 from .utils import endpoint
 from .compat import cache
 from .http import Requester
@@ -50,9 +50,10 @@ class Finicity(object):
         return token
 
     @endpoint("GET", "v1/institutions")
-    def get_institutions(self, name, *args, **kwargs):
-        if len(name) < 3:
-            return []
+    def get_institutions(self, name=None, *args, **kwargs):
+
+        if not name:
+            name = "*"
 
         body = dict(search=name.strip())
         response = self.http.request(kwargs['method'],
@@ -61,6 +62,7 @@ class Finicity(object):
                                      headers={'Finicity-App-Token': self.app_token})
 
         institutions = parse(response.content)
+
         if int(institutions['institutions']['@found']) == 1:
             institutions = [institutions['institutions']['institution']]
         elif int(institutions['institutions']['@found']) > 1:
@@ -85,7 +87,25 @@ class Finicity(object):
                                      kwargs['endpoint_path'].format(institution_id=institution_id),
                                      headers={'Finicity-App-Token': self.app_token})
         fields = parse(response.content).get('loginForm', [])
+
         return [LoginField(**field) for field in fields['loginField']]
+
+    def parse_login_field(self, login_field):
+        parsed_field = dict()
+
+        parsed_field['label'] = login_field.description
+        parsed_field['id'] = login_field.id
+        parsed_field['display_order'] = login_field.displayOrder
+
+        if login_field.mask == True:
+            html_input = '<input type="password" class="">'
+        else:
+            html_input = '<input type="text" class="">'
+
+        parsed_field['html_input'] = html_input
+
+        return parsed_field
+
 
     @endpoint("POST", "v1/customers/testing")
     def add_testing_customer(self, customer, *args, **kwargs):
@@ -95,10 +115,16 @@ class Finicity(object):
                                      body=dict(customer=customer.__dict__),
                                      headers={'Finicity-App-Token': self.app_token})
         _customer = parse(response.content)
-        customer.id = _customer['customer']['id']
-        customer.createdDate = _customer['customer']['createdDate']
-        customer.type = "testing"
-        return customer
+
+        try:
+            customer.id = _customer['customer']['id']
+            customer.createdDate = _customer['customer']['createdDate']
+        except:
+            print (_customer)
+            return None
+        else:
+            customer.type = "testing"
+            return customer
 
     @endpoint("GET", "v1/customers")
     def get_customers(self, querystring, *args, **kwargs):
@@ -141,20 +167,36 @@ class Finicity(object):
                                      headers={'Finicity-App-Token': self.app_token})
         if response.status_code == 203:
             return self.handle_mfa_response(response)
+        elif response.status_code >= 400:
+            http_status = response.status_code
+            response = parse(response.content)
+            raise MissingParameter('HTTP Error: {}, Finicity Error {}: {}'.format(http_status, response['error']['message'], response['error']['code']))
 
         accounts = parse(response.content).get('accounts', [])
         return [Account.deserialize(account) for account in accounts['account']]
 
     @endpoint("POST", "v1/customers/{customer_id}/institutions/{institution_id}/accounts")
     def get_accounts(self, customer_id, institution_id, body, *args, **kwargs):
-        response = self.http.request(kwargs['method'],
-                                     kwargs['endpoint_path'].format(customer_id=customer_id,
-                                                                    institution_id=institution_id),
-                                     body=body,
-                                     headers={'Finicity-App-Token': self.app_token})
+
+        response = self.http.request(
+                    kwargs['method'],
+                    kwargs['endpoint_path'].format(customer_id=customer_id,
+                    institution_id=institution_id),
+                    body=body,
+                    headers={'Finicity-App-Token': self.app_token},
+                )
+
         if response.status_code == 203:
             return self.handle_mfa_response(response)
+        elif response.status_code >= 400:
+            http_status = response.status_code
+            response = parse(response.content)
+            raise MissingParameter('HTTP Error: {}, Finicity Error {}: {}'.format(http_status, response['error']['message'], response['error']['code']))
+
         accounts = parse(response.content).get('accounts', [])
+
+        print (accounts)
+
         return [Account.deserialize(account) for account in accounts['account']]
 
     @endpoint("GET", "v1/customers/{customer_id}/accounts/{account_id}")
@@ -178,8 +220,32 @@ class Finicity(object):
         accounts = parse(response.content).get('accounts', [])
         return [Account.deserialize(account) for account in accounts['account']]
 
+
+    @endpoint("POST", 'v1/customers/{customer_id}/institutionLogins/{institution_login_id}/accounts')
+    def refresh_institution_login(self, customer_id, institution_login_id, body=None, *args, **kwargs):
+        response = self.http.request(
+            kwargs['method'],
+            kwargs['endpoint_path'].format(
+                customer_id = customer_id,
+                institution_login_id = institution_login_id),
+            body = body,
+            headers = {'Finicity-App-Token' : self.app_token}
+        )
+
+        if response.status_code == 203:
+            return self.handle_mfa_response(response)
+        elif response.status_code >= 400:
+            print (response.content)
+            response = parse(response.content)
+            raise MissingParameter('HTTP Error: {}, Finicity Error {}: {}'.format(http_status, response['error']['message'], response['error']['code']))
+
+        accounts = parse(response.content).get('accounts', [])
+        return [Account.deserialize(account) for account in accounts['account']]
+
+
+    ### Deprecated
     @endpoint("POST", "v1/customers/{customer_id}/accounts/{account_id}")
-    def refresh_account(self, customer_id, account_id, body, *args, **kwargs):
+    def refresh_account(self, customer_id, account_id, body=None, *args, **kwargs):
         response = self.http.request(kwargs['method'],
                                      kwargs['endpoint_path'].format(customer_id=customer_id,
                                                                     account_id=account_id),
@@ -187,6 +253,8 @@ class Finicity(object):
                                      headers={'Finicity-App-Token': self.app_token})
         if response.status_code == 203:
             return self.handle_mfa_response(response)
+
+        print (response.content)
         accounts = parse(response.content).get('accounts', [])
         return [Account.deserialize(account) for account in accounts['account']]
 
@@ -206,11 +274,13 @@ class Finicity(object):
 
     @endpoint("GET", "v2/customers/{customer_id}/accounts/{account_id}/transactions")
     def get_transactions(self, customer_id, account_id, body, *args, **kwargs):
+
         response = self.http.request(kwargs['method'],
                                      kwargs['endpoint_path'].format(customer_id=customer_id,
                                                                     account_id=account_id),
                                      body=body,
                                      headers={'Finicity-App-Token': self.app_token})
+
 
         transactions = parse(response.content).get('transactions', [])
         return [Transaction(**t) for t in transactions['transaction']]
