@@ -63,7 +63,10 @@ class BaseResource(BaseObject):
         BaseObject.optional_fields.fset(self, value)
 
     def __repr__(self):
-        return "<{}: {}>".format(self.__class__.__name__, self.id)
+        if isinstance(self, Customer):
+            return "<{}>".format(self.__class__.__name__)
+        else:
+            return "<{}: {}>".format(self.__class__.__name__, self.id)
 
 
 class Account(BaseResource):
