@@ -90,17 +90,20 @@ class Finicity(object):
 
         return [LoginField(**field) for field in fields['loginField']]
 
-    def parse_login_field(self, login_field):
+    def parse_login_field(self, login_field, css=None):
         parsed_field = dict()
 
         parsed_field['label'] = login_field.description
         parsed_field['id'] = login_field.id
         parsed_field['display_order'] = login_field.displayOrder
 
+        if not css:
+            css = ""
+
         if login_field.mask == True:
-            html_input = '<input type="password" class="">'
+            html_input = '<input type="password" class="{}">'.format(css)
         else:
-            html_input = '<input type="text" class="">'
+            html_input = '<input type="text" class="{}">'.format(css)
 
         parsed_field['html_input'] = html_input
 
@@ -143,7 +146,7 @@ class Finicity(object):
 
     @endpoint("GET", "v1/customers/{customer_id}")
     def get_customer(self, customer_id, *args, **kwargs):
-        response = self.http.request(kwargs['method'],
+        response = self.http.request(kwargsf['method'],
                                      kwargs['endpoint_path'].format(customer_id=customer_id),
                                      headers={'Finicity-App-Token': self.app_token})
         parsed_response = parse(response.content)
