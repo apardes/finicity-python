@@ -97,6 +97,7 @@ class Finicity(object):
         parsed_field['id'] = login_field.id
         parsed_field['display_order'] = login_field.displayOrder
         parsed_field['name'] = login_field.name
+        parsed_field['mask'] = login_field.mask
 
         if not css:
             css = ""
