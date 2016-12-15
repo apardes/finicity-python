@@ -102,7 +102,7 @@ class Finicity(object):
         if not css:
             css = ""
 
-        if login_field.mask == True:
+        if login_field.mask == "true":
             html_input = '<input type="password" class="{}" data-input-id="{}" data-input-name="{}">'.format(css, login_field.id, login_field.name)
         else:
             html_input = '<input type="text" class="{}" data-input-id="{}" data-input-name="{}">'.format(css, login_field.id, login_field.name)
