@@ -96,14 +96,15 @@ class Finicity(object):
         parsed_field['label'] = login_field.description
         parsed_field['id'] = login_field.id
         parsed_field['display_order'] = login_field.displayOrder
+        parsed_field['name'] = login_field.name
 
         if not css:
             css = ""
 
         if login_field.mask == True:
-            html_input = '<input type="password" class="{}">'.format(css)
+            html_input = '<input type="password" class="{}" data-input-id="{}" data-input-name="{}">'.format(css, login_field.id, login_field.name)
         else:
-            html_input = '<input type="text" class="{}">'.format(css)
+            html_input = '<input type="text" class="{}" data-input-id="{}" data-input-name="{}">'.format(css, login_field.id, login_field.name)
 
         parsed_field['html_input'] = html_input
 
