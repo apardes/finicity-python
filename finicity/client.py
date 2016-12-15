@@ -120,11 +120,11 @@ class Finicity(object):
                                      body=dict(customer=customer.__dict__),
                                      headers={'Finicity-App-Token': self.app_token})
         _customer = parse(response.content)
-
         try:
             customer.id = _customer['customer']['id']
             customer.createdDate = _customer['customer']['createdDate']
         except:
+            print ("Failed to create customer")
             print (_customer)
             return None
         else:

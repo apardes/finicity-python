@@ -30,8 +30,6 @@ class Requester(object):
             else:
                 body = ""
 
-            print (body)
-
             if self.debug:
                 print ("Request body: {}\n".format(body))
 
