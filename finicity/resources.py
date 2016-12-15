@@ -214,8 +214,8 @@ class LoginField(BaseResource):
 
 
 class Customer(BaseResource):
-    required_fields = ["username", "firstName", "lastName", ]
-    optional_fields = ["id", "type", "createdDate", ]
+    required_fields = ["username"]
+    optional_fields = ["id", "type", "createdDate", "firstName", "lastName" ]
 
     def to_json(self):
         return {
