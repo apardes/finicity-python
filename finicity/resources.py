@@ -65,6 +65,8 @@ class BaseResource(BaseObject):
     def __repr__(self):
         if isinstance(self, Customer):
             return "<{}>".format(self.__class__.__name__)
+        elif isinstance(self, MFAChallenge) or isinstance(self, TextMFA) or isinstance(self, CaptchaMFA) or isinstance(self, MultipleImagesMFA) or isinstance(self, MultipleOptionsMFA):
+            return "<{}>".format(self.__class__.__name__)
         else:
             return "<{}: {}>".format(self.__class__.__name__, self.id)
 
