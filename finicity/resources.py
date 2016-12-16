@@ -258,7 +258,6 @@ class BaseMFA(BaseResource):
     def to_json(self):
         return {
             'text' : self.text,
-            'answer' : self.answer,
         }
 
 
@@ -270,8 +269,6 @@ class CaptchaMFA(BaseMFA):
 
     def to_json(self):
         return {
-            'text' : self.text,
-            'answer' : self.answer,
             'image' : self.image,
         }
 
@@ -281,8 +278,6 @@ class MultipleOptionsMFA(BaseMFA):
 
     def to_json(self):
         return {
-            'text' : self.text,
-            'answer' : self.answer,
             'choices' : self.choices,
         }
 
@@ -292,8 +287,6 @@ class MultipleImagesMFA(BaseMFA):
 
     def to_json(self):
         return {
-            'text' : self.text,
-            'answer' : self.answer,
             'imageChoices' : self.imageChoices,
         }
 
