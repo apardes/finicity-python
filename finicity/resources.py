@@ -255,19 +255,48 @@ class BaseMFA(BaseResource):
             return TextMFA(text=question.get("text"), answer="")
 
 
+    def to_json(self):
+        return {
+            'text' : self.text,
+            'answer' : self.answer,
+        }
+
+
 class TextMFA(BaseMFA):
     pass
 
 class CaptchaMFA(BaseMFA):
     required_fields = ["image", ]
 
+    def to_json(self):
+        return {
+            'text' : self.text,
+            'answer' : self.answer,
+            'image' : self.image,
+        }
+
 
 class MultipleOptionsMFA(BaseMFA):
     required_fields = ["choices", ]
 
+    def to_json(self):
+        return {
+            'text' : self.text,
+            'answer' : self.answer,
+            'choices' : self.choices,
+        }
+
 
 class MultipleImagesMFA(BaseMFA):
     required_fields = ["imageChoices", ]
+
+    def to_json(self):
+        return {
+            'text' : self.text,
+            'answer' : self.answer,
+            'imageChoices' : self.imageChoices,
+        }
+
 
 
 class Transaction(BaseResource):
