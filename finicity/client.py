@@ -26,6 +26,7 @@ class Finicity(object):
             questions = [questions]
 
         for question in questions:
+            print (question)
             mfa_questions.append(BaseMFA.deserialize(question))
         mfa_challenge = MFAChallenge(session=response.headers.get("MFA-Session"),
                                      questions=mfa_questions)
@@ -242,7 +243,7 @@ class Finicity(object):
         elif response.status_code >= 400:
             print (response.content)
             response = parse(response.content)
-            raise MissingParameter('HTTP Error: {}, Finicity Error {}: {}'.format(http_status, response['error']['message'], response['error']['code']))
+            raise MissingParameter('HTTP Error: {}, Finicity Error {}: {}'.format(response.status_code, response['error']['message'], response['error']['code']))
 
         accounts = parse(response.content).get('accounts', [])
         return [Account.deserialize(account) for account in accounts['account']]
@@ -273,6 +274,12 @@ class Finicity(object):
                                               'MFA-Session': mfa_session})
         if response.status_code == 203:
             self.handle_mfa_response(response)
+        elif response.status_code >= 400:
+            print (response.content)
+            try:
+                raise MissingParameter('HTTP Error: {}, Finicity Error: {}: {}'.format(response.status_code, response['error']['message'], response['error']['code']))
+            except:
+                raise MissingParameter('Finicity Server Error')
 
         accounts = parse(response.content).get('accounts', [])
         return [Account.deserialize(account) for account in accounts['account']]
@@ -286,6 +293,15 @@ class Finicity(object):
                                      body=body,
                                      headers={'Finicity-App-Token': self.app_token})
 
+        if response.status_code >= 400:
+            return None
+        else:
+            response = parse(response.content)
+            if response['transactions']['@displaying'] == "1":
+                print (1)
+                transactions = [response['transactions']['transaction']]
+            else:
+                print (2)
+                transactions = response['transactions']['transaction']
 
-        transactions = parse(response.content).get('transactions', [])
-        return [Transaction(**t) for t in transactions['transaction']]
+            return [Transaction(**t) for t in transactions]

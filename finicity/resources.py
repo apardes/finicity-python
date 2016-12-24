@@ -6,10 +6,18 @@ class BaseObject(object):
         self.__required_fields = []
         self.__optional_fields = []
 
-        for key, value in kwargs.items():
+        try:
+            categorization = kwargs.pop('categorization')
+        except:
+            items = kwargs.items()
+        else:
+            items = kwargs.items() + categorization
+
+        for key, value in items:
             if key in self.optional_fields \
                     or key in self.required_fields:
                 self.__dict__.update({key: value})
+
 
     @property
     def required_fields(self):
@@ -73,6 +81,7 @@ class BaseResource(BaseObject):
 
 class Account(BaseResource):
     required_fields = ["id", "number", "name", "balance", "type", "status",]
+
     optional_fields = ["customerId", "institutionId", "createdDate",
                        "aggregationStatusCode", "aggregationSuccessDate",
                        "aggregationAttemptDate", "balanceDate", "lastUpdatedDate",
@@ -99,14 +108,30 @@ class Account(BaseResource):
         return Account(**account)
 
     def to_json(self):
-        return {
-            'id' : self.id,
-            'number' : self.number,
-            'name' : self.name,
-            'balance' : self.balance,
-            'type' : self.type,
-            'status' : self.status,
-        }
+        try:
+            return {
+                'id' : self.id,
+                'number' : self.number,
+                'name' : self.name,
+                'balance' : self.balance,
+                'type' : self.type,
+                'status' : self.status,
+                'institutionLoginId' : self.institutionLoginId if self.institutionLoginId else None,
+                'createdDate' : self.createdDate if self.createdDate else None,
+                'aggregationStatusCode' : self.aggregationStatusCode if self.aggregationStatusCode else None,
+                'balanceDate' : self.balanceDate if self.balanceDate else None,
+            }
+        except:
+            return {
+                'id' : self.id,
+                'number' : self.number,
+                'name' : self.name,
+                'balance' : self.balance,
+                'type' : self.type,
+                'status' : self.status,
+                'institutionLoginId' : self.institutionLoginId if self.institutionLoginId else None,
+            }
+
 
     def to_jsonl(self):
         return {
@@ -264,30 +289,41 @@ class BaseMFA(BaseResource):
 class TextMFA(BaseMFA):
     pass
 
+    def to_json(self):
+        return {
+            'text' : self.text,
+            'mfa_type' : 'Text',
+        }
+
 class CaptchaMFA(BaseMFA):
     required_fields = ["image", ]
 
     def to_json(self):
         return {
             'image' : self.image,
+            'mfa_type' : 'Captcha',
         }
 
 
 class MultipleOptionsMFA(BaseMFA):
-    required_fields = ["choices", ]
+    required_fields = ["choices", "text"]
 
     def to_json(self):
         return {
             'choices' : self.choices,
+            'mfa_type' : 'Choices',
+            'text' : self.text,
         }
 
 
 class MultipleImagesMFA(BaseMFA):
-    required_fields = ["imageChoices", ]
+    required_fields = ["imageChoices", "text"]
 
     def to_json(self):
         return {
             'imageChoices' : self.imageChoices,
+            'mfa_type' : 'MultipleImages',
+            'text' : self.text,
         }
 
 
@@ -306,8 +342,34 @@ class Transaction(BaseResource):
 
     required_fields = ["id", "accountId", "amount", "createdDate", "customerId",
                        "description", "institutionTransactionId", "postedDate",
-                       "status", "transactionDate"]
+                       "status"]
 
     optional_fields = ["bonusAmount", "checkNum", "escrowAmount", "feeAmount",
                        "interestAmount", "memo", "principalAmount", "subaccount", "type",
-                       "unitQuantity", "unitValue"]
+                       "unitQuantity", "unitValue", "transactionDate", "normalizedPayeeName", 
+                       "category", "scheduleC", "sic"]
+
+
+    def to_json(self):
+        json_response = {}
+
+        for x in self.required_fields:
+            json_response[x] = eval("self.{}".format(x))
+
+        for x in self.optional_fields:
+            try:
+                this_field = eval("self.{}".format(x))
+            except:
+                this_field = None
+
+            json_response[x] = this_field
+
+        return json_response
+
+
+
+
+
+
+
+
