@@ -44,7 +44,12 @@ class Finicity(object):
         response = self.http.request(kwargs['method'],
                                      kwargs['endpoint_path'],
                                      body)
-        content = parse(response.content)
+
+        try:
+            content = parse(response.content)
+        except:
+            print (response.content)
+            raise MissingParameter("Finicity Authentication Error")
         token = content['access']['token']
         cache.set(self.CACHE_KEY, token, self.TOKEN_EXPIRY)
         self.app_token = token
