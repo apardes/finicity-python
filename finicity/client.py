@@ -89,6 +89,14 @@ class Finicity(object):
                                      headers={'Finicity-App-Token': self.app_token})
         fields = parse(response.content).get('loginForm', [])
 
+        if response.status_code == 203:
+            return self.handle_mfa_response(response)
+        elif response.status_code >= 400:
+            http_status = response.status_code
+            response = parse(response.content)
+            raise MissingParameter('HTTP Error: {}, Finicity Error {}: {}'.format(http_status, response['error']['message'], response['error']['code']))
+
+
         return [LoginField(**field) for field in fields['loginField']]
 
     def parse_login_field(self, login_field, css=None):
@@ -273,7 +281,7 @@ class Finicity(object):
                                      headers={'Finicity-App-Token': self.app_token,
                                               'MFA-Session': mfa_session})
         if response.status_code == 203:
-            self.handle_mfa_response(response)
+            return self.handle_mfa_response(response)
         elif response.status_code >= 400:
             print (response.content)
             try:
