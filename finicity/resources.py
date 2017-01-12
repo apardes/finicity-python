@@ -12,7 +12,7 @@ class BaseObject(object):
             items = kwargs.items()
         else:
             print (categorization)
-            items = kwargs.items()
+            items = dict(kwargs.items())
             items['category'] = categorization['category']
 
         for key, value in items:
