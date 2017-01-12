@@ -11,7 +11,6 @@ class BaseObject(object):
         except:
             items = kwargs.items()
         else:
-            print (categorization)
             items = list(kwargs.items()) + [('category', categorization['category'])]
 
         for key, value in items:

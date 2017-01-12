@@ -214,8 +214,6 @@ class Finicity(object):
 
         accounts = parse(response.content).get('accounts', [])
 
-        print (accounts)
-
         return [Account.deserialize(account) for account in accounts['account']]
 
     @endpoint("GET", "v1/customers/{customer_id}/accounts/{account_id}")
@@ -273,7 +271,6 @@ class Finicity(object):
         if response.status_code == 203:
             return self.handle_mfa_response(response)
 
-        print (response.content)
         accounts = parse(response.content).get('accounts', [])
         return [Account.deserialize(account) for account in accounts['account']]
 
