@@ -311,13 +311,9 @@ class Finicity(object):
         else:
             response = parse(response.content)
 
-            print (response)
-
             if response['transactions']['@displaying'] == "1":
-                print (1)
                 transactions = [response['transactions']['transaction']]
             else:
-                print (2)
                 transactions = response['transactions']['transaction']
 
             return [Transaction(**t) for t in transactions]

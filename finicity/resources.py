@@ -11,7 +11,7 @@ class BaseObject(object):
         except:
             items = kwargs.items()
         else:
-            items = kwargs.items() + categorization
+            items = dict(kwargs.items()) + categorization
 
         for key, value in items:
             if key in self.optional_fields \
