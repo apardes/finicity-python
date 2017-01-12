@@ -310,6 +310,9 @@ class Finicity(object):
             return None
         else:
             response = parse(response.content)
+
+            print (response)
+
             if response['transactions']['@displaying'] == "1":
                 print (1)
                 transactions = [response['transactions']['transaction']]
