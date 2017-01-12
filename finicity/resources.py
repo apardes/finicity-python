@@ -11,10 +11,10 @@ class BaseObject(object):
         except:
             items = kwargs.items()
         else:
-            print (items)
             print (categorization)
             print (categorization['category'])
             items = dict(kwargs.items())
+            print (items)
             items['category'] = categorization['category']
             print (items)
 
