@@ -12,11 +12,8 @@ class BaseObject(object):
             items = kwargs.items()
         else:
             print (categorization)
-            print (categorization['category'])
-            items = dict(kwargs.items())
-            print (items)
+            items = kwargs.items()
             items['category'] = categorization['category']
-            print (items)
 
         for key, value in items:
             if key in self.optional_fields \
