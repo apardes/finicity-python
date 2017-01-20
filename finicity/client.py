@@ -294,6 +294,28 @@ class Finicity(object):
         accounts = parse(response.content).get('accounts', [])
         return [Account.deserialize(account) for account in accounts['account']]
 
+
+    @endpoint("POST", "v1/customers/{customer_id}/accounts/{account_id}/transactions/historic")
+    def get_historic_transactions(self, customer_id, account_id, body=None, *args, **kwargs):
+
+        response = self.http.request(
+            kwargs['method'], 
+            kwargs['endpoint_path'].format(customer_id = customer_id, account_id = account_id), 
+            body = body,
+            headers = {'Finicity-App-Token' : self.app_token}
+        )
+
+        if response.status_code == 203:
+            return self.handle_mfa_response(response)
+        elif response.status_code == 204:
+            print ("\n\n\n\nHISTORIC TRANSACTIONS LOADED\n\n\n\n")
+            return True
+        else:
+            print (response.status_code)
+            print (response.content)
+            raise MissingParameter('Unable to load historic transactions')
+
+
     @endpoint("GET", "v2/customers/{customer_id}/accounts/{account_id}/transactions")
     def get_transactions(self, customer_id, account_id, body, *args, **kwargs):
 
