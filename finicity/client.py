@@ -104,26 +104,39 @@ class Finicity(object):
 
         return [LoginField(**field) for field in fields['loginField']]
 
-    def parse_login_field(self, login_field, css=None):
-        parsed_field = dict()
+    def parse_login_field(self, login_form, css=None):
+        parsed_form = list()
+        for login_field  in login_form:
+            parsed_field = dict()
 
-        parsed_field['label'] = login_field.description
-        parsed_field['id'] = login_field.id
-        parsed_field['display_order'] = login_field.displayOrder
-        parsed_field['name'] = login_field.name
-        parsed_field['mask'] = login_field.mask
+            parsed_field['label'] = login_field.description
+            parsed_field['id'] = login_field.id
+            parsed_field['display_order'] = login_field.displayOrder
+            parsed_field['name'] = login_field.name
+            parsed_field['mask'] = login_field.mask
 
-        if not css:
-            css = ""
 
-        if login_field.mask == "true":
-            html_input = '<input type="password" class="{}" data-input-id="{}" data-input-name="{}">'.format(css, login_field.id, login_field.name)
-        else:
-            html_input = '<input type="text" class="{}" data-input-id="{}" data-input-name="{}">'.format(css, login_field.id, login_field.name)
+            if not css:
+                css = ""
 
-        parsed_field['html_input'] = html_input
+            if login_field.mask == "true":
+                html_input = '<input type="password" id="fi-pass" class="{}" data-input-id="{}" data-input-name="{}">'.format(css, login_field.id, login_field.name)
+                pass_dup_input = '<input type="password" id="fi-pass-dup" class="{}" data-input-id="{}" data-input-name="{}" data-nullify="1">'.format(css, login_field.id, login_field.name)
+            else:
+                html_input = '<input type="text" class="{}" data-input-id="{}" data-input-name="{}">'.format(css, login_field.id, login_field.name)
 
-        return parsed_field
+            if login_field.mask == "true":
+                pass_dup_field = dict(parsed_field)
+                pass_dup_field['html_input'] = pass_dup_input
+                pass_dup_field['label'] = "Confirm " + pass_dup_field['label']
+                pass_dup_field['display_order'] = str(int(pass_dup_field['display_order']) + 1)
+                parsed_form.append(pass_dup_field)
+
+            parsed_field['html_input'] = html_input
+
+            parsed_form.append(parsed_field)
+
+        return parsed_form
 
 
     @endpoint("POST", "v1/customers/testing")
