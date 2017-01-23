@@ -26,7 +26,6 @@ class Finicity(object):
             questions = [questions]
 
         for question in questions:
-            print (question)
             mfa_questions.append(BaseMFA.deserialize(question))
         mfa_challenge = MFAChallenge(session=response.headers.get("MFA-Session"),
                                      questions=mfa_questions)
@@ -321,7 +320,6 @@ class Finicity(object):
         if response.status_code == 203:
             return self.handle_mfa_response(response)
         elif response.status_code == 204:
-            print ("\n\n\n\nHISTORIC TRANSACTIONS LOADED\n\n\n\n")
             return True
         else:
             print (response.status_code)
