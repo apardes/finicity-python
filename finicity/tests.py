@@ -277,7 +277,7 @@ class FinicityTest(unittest.TestCase):
                      toDate=to_date)
 
         transactions = self.finicity.get_transactions(customer_id, account_id, query)
-        print transactions
+        print (transactions)
 
 
 
