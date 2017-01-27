@@ -228,14 +228,45 @@ class Finicity(object):
 
         return [Account.deserialize(account) for account in accounts['account']]
 
+    @endpoint("POST", "v1/customers/{customer_id}/accounts")
+    def get_all_customer_accounts(self, customer_id, body=None, *args, **kwargs):
+
+        response = self.http.request(
+                    kwargs['method'],
+                    kwargs['endpoint_path'].format(customer_id=customer_id),
+                    body=body,
+                    headers={'Finicity-App-Token': self.app_token},
+                )
+
+        if response.status_code == 203:
+            return self.handle_mfa_response(response)
+        elif response.status_code >= 400:
+            http_status = response.status_code
+            response = parse(response.content)
+            raise MissingParameter('HTTP Error: {}, Finicity Error {}: {}'.format(http_status, response['error']['message'], response['error']['code']))
+
+        accounts = parse(response.content).get('accounts', [])
+
+        return [Account.deserialize(account) for account in accounts['account']]
+
+
     @endpoint("GET", "v1/customers/{customer_id}/accounts/{account_id}")
     def get_account(self, customer_id, account_id, *args, **kwargs):
         response = self.http.request(kwargs['method'],
                                      kwargs['endpoint_path'].format(customer_id=customer_id,
                                                                     account_id=account_id),
                                      headers={'Finicity-App-Token': self.app_token})
-        # TODO: Return proper account instance
-        return response
+        
+        if response.status_code == 203:
+            return self.handle_mfa_response(response)
+        elif response.status_code >= 400:
+            http_status = response.status_code
+            response = parse(response.content)
+            raise MissingParameter('HTTP Error: {}, Finicity Error {}: {}'.format(http_status, response['error']['message'], response['error']['code']))
+
+        account = Account.deserialize(parse(response.content).get('account'))
+
+        return account
 
     @endpoint("PUT", "v1/customers/{customer_id}/institutions/{institution_id}/accounts")
     def activate_accounts(self, customer_id, institution_id, body, *args, **kwargs):
@@ -336,14 +367,23 @@ class Finicity(object):
                                      body=body,
                                      headers={'Finicity-App-Token': self.app_token})
 
+
         if response.status_code >= 400:
-            return None
+            print (response.content)
+            return None, None
         else:
             response = parse(response.content)
+
+            more_available = response['transactions']['@moreAvailable']
+            
+            if (more_available == "true") or (more_available == True):
+                more_available = True
+            else:
+                more_available = False
 
             if response['transactions']['@displaying'] == "1":
                 transactions = [response['transactions']['transaction']]
             else:
                 transactions = response['transactions']['transaction']
 
-            return [Transaction(**t) for t in transactions]
+            return [Transaction(**t) for t in transactions], more_available
