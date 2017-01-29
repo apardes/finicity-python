@@ -250,6 +250,28 @@ class Finicity(object):
         return [Account.deserialize(account) for account in accounts['account']]
 
     @endpoint("POST", "v1/customers/{customer_id}/accounts")
+    def refresh_customer_accounts(self, customer_id, body=None, *args, **kwargs):
+
+        response = self.http.request(
+                    kwargs['method'],
+                    kwargs['endpoint_path'].format(customer_id=customer_id),
+                    body=body,
+                    headers={'Finicity-App-Token': self.app_token},
+                )
+
+        if response.status_code == 203:
+            return self.handle_mfa_response(response)
+        elif response.status_code >= 400:
+            http_status = response.status_code
+            response = parse(response.content)
+            raise MissingParameter('HTTP Error: {}, Finicity Error {}: {}'.format(http_status, response['error']['message'], response['error']['code']))
+
+        accounts = parse(response.content).get('accounts', [])
+
+        return [Account.deserialize(account) for account in accounts['account']]
+
+
+    @endpoint("GET", "v1/customers/{customer_id}/accounts")
     def get_all_customer_accounts(self, customer_id, body=None, *args, **kwargs):
 
         response = self.http.request(
