@@ -157,6 +157,27 @@ class Finicity(object):
             customer.type = "testing"
             return customer
 
+
+    @endpoint("POST", "v1/customers/active")
+    def add_customer(self, customer, *args, **kwargs):
+        assert isinstance(customer, Customer)
+        response = self.http.request(kwargs['method'],
+                                     kwargs['endpoint_path'],
+                                     body=dict(customer=customer.__dict__),
+                                     headers={'Finicity-App-Token': self.app_token})
+        _customer = parse(response.content)
+        try:
+            customer.id = _customer['customer']['id']
+            customer.createdDate = _customer['customer']['createdDate']
+        except:
+            print ("Failed to create customer")
+            print (_customer)
+            return None
+        else:
+            customer.type = "active"
+            return customer
+
+
     @endpoint("GET", "v1/customers")
     def get_customers(self, querystring, *args, **kwargs):
         response = self.http.request(kwargs['method'],
