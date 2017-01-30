@@ -262,7 +262,13 @@ class BaseMFA(BaseResource):
 
     @classmethod
     def deserialize(cls, question):
-        if 'image' in question:
+        if ('image' in question) and ('imageChoice' in question):
+            choices = [(c["@value"], c["#text"]) for c in question.get("imageChoice")]
+            return MultipleImages2MFA(text=question.get("text"),
+                                     imageChoices=choices,
+                                     answer="",
+                                     image=question.get('image'))
+        elif 'image' in question:
             return CaptchaMFA(text=question.get("text"),
                               image=question.get("image"),
                               answer="")
@@ -326,6 +332,17 @@ class MultipleImagesMFA(BaseMFA):
             'text' : self.text,
         }
 
+
+class MultipleImages2MFA(BaseMFA):
+    required_fields = ["imageChoices", "text", "image"]
+
+    def to_json(self):
+        return {
+            'imageChoices' : self.imageChoices,
+            'mfa_type' : 'MultipleImages2',
+            "image" : self.image,
+            'text' : self.text,
+        }
 
 
 class Transaction(BaseResource):
