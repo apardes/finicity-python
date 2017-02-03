@@ -229,6 +229,8 @@ class Finicity(object):
 
         accounts = parse(response.content).get('accounts', [])
 
+        print (accounts)
+
         if not isinstance(accounts['account'], list):
             questions = [accounts['account']]
 
