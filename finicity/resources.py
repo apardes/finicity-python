@@ -110,6 +110,9 @@ class Account(BaseResource):
 
             print (3)
             account['detail'] = account_class(**account['detail'])
+        else:
+            print (6)
+            pass
 
         print (4)
         return Account(**account)
