@@ -218,8 +218,6 @@ class Finicity(object):
                                      body=body,
                                      headers={'Finicity-App-Token': self.app_token})
 
-        print (response)
-
         if response.status_code == 203:
             return self.handle_mfa_response(response)
         elif response.status_code >= 400:
@@ -227,7 +225,12 @@ class Finicity(object):
             response = parse(response.content)
             raise MissingParameter('HTTP Error: {}, Finicity Error {}: {}'.format(http_status, response['error']['message'], response['error']['code']))
 
+        print (response.content)
+
         accounts = parse(response.content).get('accounts', [])
+
+        print (accounts)
+
         return [Account.deserialize(account) for account in accounts['account']]
 
     @endpoint("POST", "v1/customers/{customer_id}/institutions/{institution_id}/accounts")
