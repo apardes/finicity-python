@@ -94,8 +94,10 @@ class Account(BaseResource):
     @classmethod
     def deserialize(cls, account):
         if account.get('detail', None) is not None:
+            print (1)
             AT = cls.AccountTypes
             account_type = account.get('type')
+            print (2)
             if account_type == AT.INVESTMENT:
                 account_class = InvestmentAccount
             elif account_type in [AT.CREDITCARD, AT.LINEOFCREDIT]:
@@ -104,7 +106,11 @@ class Account(BaseResource):
                 account_class = LoanAccount
             else:
                 account_class = CheckingAccount
+
+            print (3)
             account['detail'] = account_class(**account['detail'])
+
+        print (4)
         return Account(**account)
 
     def to_json(self):
