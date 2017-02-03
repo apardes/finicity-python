@@ -265,6 +265,9 @@ class Finicity(object):
 
         accounts = parse(response.content).get('accounts', [])
 
+        if not isinstance(accounts['account'], list):
+            accounts['account'] = [accounts['account']]
+
         return [Account.deserialize(account) for account in accounts['account']]
 
     @endpoint("POST", "v1/customers/{customer_id}/accounts")
@@ -285,6 +288,9 @@ class Finicity(object):
             raise MissingParameter('HTTP Error: {}, Finicity Error {}: {}'.format(http_status, response['error']['message'], response['error']['code']))
 
         accounts = parse(response.content).get('accounts', [])
+
+        if not isinstance(accounts['account'], list):
+            accounts['account'] = [accounts['account']]
 
         return [Account.deserialize(account) for account in accounts['account']]
 
@@ -307,6 +313,9 @@ class Finicity(object):
             raise MissingParameter('HTTP Error: {}, Finicity Error {}: {}'.format(http_status, response['error']['message'], response['error']['code']))
 
         accounts = parse(response.content).get('accounts', [])
+
+        if not isinstance(accounts['account'], list):
+            accounts['account'] = [accounts['account']]
 
         return [Account.deserialize(account) for account in accounts['account']]
 
@@ -339,6 +348,10 @@ class Finicity(object):
         if response.status_code == 203:
             return self.handle_mfa_response(response)
         accounts = parse(response.content).get('accounts', [])
+
+        if not isinstance(accounts['account'], list):
+            accounts['account'] = [accounts['account']]
+
         return [Account.deserialize(account) for account in accounts['account']]
 
 
@@ -361,6 +374,10 @@ class Finicity(object):
             raise MissingParameter('HTTP Error: {}, Finicity Error {}: {}'.format(response.status_code, response['error']['message'], response['error']['code']))
 
         accounts = parse(response.content).get('accounts', [])
+
+        if not isinstance(accounts['account'], list):
+            accounts['account'] = [accounts['account']]
+
         return [Account.deserialize(account) for account in accounts['account']]
 
 
@@ -396,6 +413,10 @@ class Finicity(object):
                 raise MissingParameter('Finicity Server Error')
 
         accounts = parse(response.content).get('accounts', [])
+
+        if not isinstance(accounts['account'], list):
+            accounts['account'] = [accounts['account']]
+
         return [Account.deserialize(account) for account in accounts['account']]
 
 

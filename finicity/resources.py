@@ -97,6 +97,8 @@ class Account(BaseResource):
 
         print (account)
 
+        print (account.get('detail'))
+
         has_detail = account.get('detail')
 
         print (has_detail)
