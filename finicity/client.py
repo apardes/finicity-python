@@ -228,10 +228,11 @@ class Finicity(object):
         print (response.content)
 
         accounts = parse(response.content).get('accounts', [])
+        accounts = [Account.deserialize(account) for account in accounts['account']]
 
         print (accounts)
 
-        return [Account.deserialize(account) for account in accounts['account']]
+        return accounts
 
     @endpoint("POST", "v1/customers/{customer_id}/institutions/{institution_id}/accounts")
     def get_accounts(self, customer_id, institution_id, body, *args, **kwargs):
