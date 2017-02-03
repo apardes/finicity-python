@@ -95,6 +95,8 @@ class Account(BaseResource):
     def deserialize(cls, account):
         print (11)
 
+        print (account)
+
         has_detail = account.get('detail')
 
         print (has_detail)
