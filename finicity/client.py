@@ -217,6 +217,9 @@ class Finicity(object):
                                                                     institution_id=institution_id),
                                      body=body,
                                      headers={'Finicity-App-Token': self.app_token})
+
+        print (response)
+
         if response.status_code == 203:
             return self.handle_mfa_response(response)
         elif response.status_code >= 400:
