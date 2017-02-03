@@ -228,6 +228,9 @@ class Finicity(object):
         print (response.content)
 
         accounts = parse(response.content).get('accounts', [])
+
+        print (accounts)
+
         accounts = [Account.deserialize(account) for account in accounts['account']]
 
         print (accounts)
