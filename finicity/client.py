@@ -232,7 +232,7 @@ class Finicity(object):
         print (accounts)
 
         if not isinstance(accounts, list):
-            questions = [accounts]
+            accounts = [accounts]
 
 
         accounts = [Account.deserialize(account) for account in accounts['account']]
