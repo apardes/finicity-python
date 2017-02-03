@@ -94,7 +94,7 @@ class Account(BaseResource):
     @classmethod
     def deserialize(cls, account):
         print (11)
-        if account.get('detail', None) is not None:
+        if account.get('detail'):
             print (1)
             AT = cls.AccountTypes
             account_type = account.get('type')
