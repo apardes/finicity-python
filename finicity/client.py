@@ -231,9 +231,9 @@ class Finicity(object):
 
         print (accounts)
 
-        if not isinstance(accounts, list):
+        if not isinstance(accounts['account'], list):
             print (999)
-            accounts = [accounts]
+            accounts['account'] = [accounts['account']]
 
         print (accounts)
 
