@@ -232,8 +232,12 @@ class Finicity(object):
         print (accounts)
 
         if not isinstance(accounts, list):
+            print (999)
             accounts = [accounts]
 
+        print (accounts)
+
+        print (888)
 
         accounts = [Account.deserialize(account) for account in accounts['account']]
 
