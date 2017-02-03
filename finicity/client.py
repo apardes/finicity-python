@@ -231,8 +231,8 @@ class Finicity(object):
 
         print (accounts)
 
-        if not isinstance(accounts['account'], list):
-            questions = [accounts['account']]
+        if not isinstance(accounts, list):
+            questions = [accounts]
 
 
         accounts = [Account.deserialize(account) for account in accounts['account']]
